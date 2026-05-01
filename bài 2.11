@@ -1,0 +1,77 @@
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import numpy as np
+
+ridedistance = ctrl.Antecedent(np.arange(0, 53, 3), 'ridedistance')
+trafficcondition = ctrl.Antecedent(np.arange(0, 103, 3), 'trafficcondition')
+demandlevel = ctrl.Antecedent(np.arange(0, 103, 3), 'demandlevel')
+weathercondition = ctrl.Antecedent(np.arange(0, 53, 3), 'weathercondition')
+customerrating = ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'customerrating')
+ridepunctuality = ctrl.Antecedent(np.arange(0, 150, 50), 'ridepunctuality')
+
+cost= ctrl.Consequent(np.arange(0, 25.1, 0.1), 'cost')
+point= ctrl.Consequent(np.arange(0, 25.1, 0.1), 'point')
+
+
+ridedistance['short'] = fuzz.trimf(ridedistance.universe, [0, 0, 5])
+ridedistance['medium'] = fuzz.trimf(ridedistance.universe, [0, 5, 10])
+ridedistance['long'] = fuzz.trimf(ridedistance.universe, [5, 10, 10])
+ridedistance['verylong'] = fuzz.trimf(ridedistance.universe, [5, 10, 10])
+
+trafficcondition['low'] = fuzz.trimf(trafficcondition.universe, [0, 0, 13])
+trafficcondition['medium'] = fuzz.trimf(trafficcondition.universe, [0, 13, 25])
+trafficcondition['high'] = fuzz.trimf(trafficcondition.universe, [13, 25, 25])
+
+demandlevel['low'] = fuzz.trimf(demandlevel.universe, [0, 0, 13])
+demandlevel['high'] = fuzz.trimf(demandlevel.universe, [13, 25, 25])
+
+weathercondition['good'] = fuzz.trimf(weathercondition.universe, [0, 0, 13])
+weathercondition['morderate'] = fuzz.trimf(weathercondition.universe, [0, 13, 25])
+weathercondition['bad'] = fuzz.trimf(weathercondition.universe, [13, 25, 25])
+
+customerrating['poor'] = fuzz.trimf(customerrating.universe, [0, 0, 13])
+customerrating['average'] = fuzz.trimf(customerrating.universe, [0, 13, 25])
+customerrating['good'] = fuzz.trimf(customerrating.universe, [13, 25, 25])
+
+ridepunctuality['late'] = fuzz.trimf(ridepunctuality.universe, [0, 0, 13])
+ridepunctuality['ontime'] = fuzz.trimf(ridepunctuality.universe, [0, 13, 25])
+ridepunctuality['early'] = fuzz.trimf(ridepunctuality.universe, [13, 25, 25])
+
+cost['low'] = fuzz.trimf(cost.universe, [0, 0, 13])
+cost['medium'] = fuzz.trimf(cost.universe, [0, 13, 25])
+cost['high'] = fuzz.trimf(cost.universe, [13, 25, 25])
+cost['veryhigh'] = fuzz.trimf(cost.universe, [25, 50, 50])
+
+point['none'] = fuzz.trimf(point.universe, [0, 0, 13])
+point['few'] = fuzz.trimf(point.universe, [0, 13, 25])
+point['moderate'] = fuzz.trimf(point.universe, [13, 13, 25])
+point['high'] = fuzz.trimf(point.universe, [25, 50, 50])
+
+
+rule1 = ctrl.Rule(ridedistance['short'] & trafficcondition['low'], cost['low'])
+rule2 = ctrl.Rule(ridedistance['short'] & trafficcondition['medium'], cost['medium'])
+rule3 = ctrl.Rule(ridedistance['long'] & trafficcondition['low'], cost['medium'])
+rule4 = ctrl.Rule(ridedistance['long'] & trafficcondition['high'], cost['high'])
+rule5 = ctrl.Rule(ridedistance['verylong'], cost['veryhigh'])
+rule6 = ctrl.Rule(demandlevel['high'] & trafficcondition['high'], cost['veryhigh'])
+rule7 = ctrl.Rule(demandlevel['low'] & trafficcondition['low'], cost['low'])
+rule8 = ctrl.Rule(customerrating['good'] & ridepunctuality['early'], point['high'])
+rule9 = ctrl.Rule(customerrating['good'] & ridepunctuality['ontime'], point['moderate'])
+rule10 = ctrl.Rule(customerrating['average'], point['moderate'])
+rule11 = ctrl.Rule(customerrating['poor'], point['few'])
+rule12 = ctrl.Rule(ridepunctuality['late'], point['none'])
+rule13 = ctrl.Rule(weathercondition['good'] & trafficcondition['low'], cost['low'])
+rule14 = ctrl.Rule(weathercondition['morderate'] & trafficcondition['medium'], cost['medium'])
+rule15 = ctrl.Rule(weathercondition['bad'] & trafficcondition['high'], cost['high'])
+
+cost_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14, rule15])
+cost_simulation = ctrl.ControlSystemSimulation(cost_ctrl)
+cost_simulation.input['weathercondition']=3
+cost_simulation.input['customerrating']=7
+cost_simulation.input['ridedistance']=1
+cost_simulation.input['trafficcondition']=5
+cost_simulation.input['demandlevel']=4
+cost_simulation.input['ridepunctuality']=6
+cost_simulation.compute()
+print(cost_simulation.output['cost'])
+cost.view(sim=cost_simulation)
