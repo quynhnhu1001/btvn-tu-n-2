@@ -2,6 +2,7 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import numpy as np
 
+
 ridedistance = ctrl.Antecedent(np.arange(0, 53, 3), 'ridedistance')
 trafficcondition = ctrl.Antecedent(np.arange(0, 103, 3), 'trafficcondition')
 demandlevel = ctrl.Antecedent(np.arange(0, 103, 3), 'demandlevel')
@@ -23,6 +24,7 @@ trafficcondition['medium'] = fuzz.trimf(trafficcondition.universe, [0, 13, 25])
 trafficcondition['high'] = fuzz.trimf(trafficcondition.universe, [13, 25, 25])
 
 demandlevel['low'] = fuzz.trimf(demandlevel.universe, [0, 0, 13])
+demandlevel['medium'] = fuzz.trimf(demandlevel.universe, [0, 13, 25])
 demandlevel['high'] = fuzz.trimf(demandlevel.universe, [13, 25, 25])
 
 weathercondition['good'] = fuzz.trimf(weathercondition.universe, [0, 0, 13])
