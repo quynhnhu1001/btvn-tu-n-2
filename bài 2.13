@@ -1,0 +1,56 @@
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import numpy as np
+
+productdemand = ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'productdemand')
+competitor= ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'competitor')
+storereputation = ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'storereputation')
+profitmargin= ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'profitmargin')
+seasondemand = ctrl.Antecedent(np.arange(0, 50, 5), 'seasondemand')
+
+discount= ctrl.Consequent(np.arange(0, 75, 5), 'discount')
+
+productdemand['low'] = fuzz.trimf(productdemand.universe, [0, 0, 4])
+productdemand['medium'] = fuzz.trimf(productdemand.universe, [0, 4, 4.5])
+productdemand['high'] = fuzz.trimf(productdemand.universe, [4, 4.5, 5])
+
+competitor['low'] = fuzz.trimf(competitor.universe, [0, 0, 4])
+competitor['medium'] = fuzz.trimf(competitor.universe, [0, 4, 4.5])
+competitor['high'] = fuzz.trimf(competitor.universe, [4, 4.5, 5])
+
+storereputation['low'] = fuzz.trimf(storereputation.universe, [0, 0, 4])
+storereputation['medium'] = fuzz.trimf(storereputation.universe, [0, 4, 4.5])
+storereputation['high'] = fuzz.trimf(storereputation.universe, [4, 4.5, 5])
+
+seasondemand['none'] = fuzz.trimf(seasondemand.universe, [0, 0, 25])
+seasondemand['moderate'] = fuzz.trimf(seasondemand.universe, [0, 25, 45])
+seasondemand['high'] = fuzz.trimf(seasondemand.universe, [25, 45, 50])
+
+profitmargin['low'] = fuzz.trimf(profitmargin.universe, [0, 0, 4])
+profitmargin['medium'] = fuzz.trimf(profitmargin.universe, [0, 4, 4.5])
+profitmargin['high'] = fuzz.trimf(profitmargin.universe, [4, 4.5, 5])
+
+discount['verylow'] = fuzz.trimf(discount.universe, [0, 0, 5])
+discount['low'] = fuzz.trimf(discount.universe, [0, 5, 10])
+discount['medium'] = fuzz.trimf(discount.universe, [5, 10, 20])
+discount['high'] = fuzz.trimf(discount.universe, [10, 20, 40])
+discount['veryhigh'] = fuzz.trimf(discount.universe, [20, 40, 70])
+
+rule1 = ctrl.Rule(productdemand['high'] & competitor['low'] & profitmargin['low'] , discount['verylow'])
+rule2 = ctrl.Rule(productdemand['low'] & competitor['high'] & profitmargin['high'] , discount['high'])
+rule3 = ctrl.Rule(storereputation['high'] & profitmargin['medium'] & seasondemand['high'], discount['medium'])
+rule4 = ctrl.Rule(competitor['high'] & seasondemand['high'] & profitmargin['high'], discount['veryhigh'])
+rule5 = ctrl.Rule(storereputation['low'] & productdemand['medium']& profitmargin['low'], discount['medium'])
+rule6 = ctrl.Rule(productdemand['high'] & seasondemand['none'] & competitor['high'], discount['verylow'])
+rule7 = ctrl.Rule(profitmargin['high'] & competitor['medium']& seasondemand['moderate'], discount['medium'])
+
+discount_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6, rule7])
+discount_simulation = ctrl.ControlSystemSimulation(discount_ctrl)
+discount_simulation.input['productdemand']=4.3
+discount_simulation.input['competitor']=4.1
+discount_simulation.input['storereputation']=4.2
+discount_simulation.input['seasondemand']=4.4
+discount_simulation.input['profitmargin']=4.7
+discount_simulation.compute()
+print(discount_simulation.output['discount'])
+discount.view(sim=discount_simulation)
