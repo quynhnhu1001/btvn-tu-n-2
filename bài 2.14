@@ -1,0 +1,73 @@
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import numpy as np
+
+orderdensity = ctrl.Antecedent(np.arange(0, 10500, 500), 'orderdensity')
+deliveryurgency= ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'deliveryurgency')
+drivercurrentload = ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'drivercurrentload')
+trafficcondition= ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'trafficcondition')
+profitperdelivery = ctrl.Antecedent(np.arange(0, 5.5, 0.5), 'profitperdelivery')
+
+numberoforderstocombine= ctrl.Consequent(np.arange(0, 100, 5), 'numberoforderstocombine')
+deliverypriority= ctrl.Consequent(np.arange(0, 5.5, 0.5), 'deliverypriority')
+
+orderdensity['low'] = fuzz.trimf(orderdensity.universe, [0, 0, 2500])
+orderdensity['medium'] = fuzz.trimf(orderdensity.universe, [0, 2500, 5000])
+orderdensity['high'] = fuzz.trimf(orderdensity.universe, [2500, 5000, 10000])
+
+deliveryurgency['low'] = fuzz.trimf(deliveryurgency.universe, [0, 0, 4])
+deliveryurgency['medium'] = fuzz.trimf(deliveryurgency.universe, [0, 4, 4.5])
+deliveryurgency['high'] = fuzz.trimf(deliveryurgency.universe, [4, 4.5, 5])
+
+drivercurrentload['low'] = fuzz.trimf(drivercurrentload.universe, [0, 0, 4])
+drivercurrentload['medium'] = fuzz.trimf(drivercurrentload.universe, [0, 4, 4.5])
+drivercurrentload['high'] = fuzz.trimf(drivercurrentload.universe, [4, 4.5, 5])
+
+trafficcondition['low'] = fuzz.trimf(trafficcondition.universe, [0, 0, 4])
+trafficcondition['medium'] = fuzz.trimf(trafficcondition.universe, [0, 4, 4.5])
+trafficcondition['high'] = fuzz.trimf(trafficcondition.universe, [4, 4.5, 5])
+
+profitperdelivery['low'] = fuzz.trimf(profitperdelivery.universe, [0, 0, 4])
+profitperdelivery['medium'] = fuzz.trimf(profitperdelivery.universe, [0, 4, 4.5])
+profitperdelivery['high'] = fuzz.trimf(profitperdelivery.universe, [4, 4.5, 5])
+
+numberoforderstocombine['less'] = fuzz.trimf(numberoforderstocombine.universe, [0, 0, 25])
+numberoforderstocombine['some'] = fuzz.trimf(numberoforderstocombine.universe, [0, 25, 50])
+numberoforderstocombine['much'] = fuzz.trimf(numberoforderstocombine.universe, [25, 50, 100])
+
+deliverypriority['low'] = fuzz.trimf(deliverypriority.universe, [0, 0, 4])
+deliverypriority['medium'] = fuzz.trimf(deliverypriority.universe, [0, 4, 4.5])
+deliverypriority['high'] = fuzz.trimf(deliverypriority.universe, [4, 4.5, 5])
+
+rule1 = ctrl.Rule(orderdensity['high'] & drivercurrentload['low'] & trafficcondition['low'] , numberoforderstocombine['much'])
+rule2 = ctrl.Rule(orderdensity['medium'] & trafficcondition['high'] & deliveryurgency['medium'] , numberoforderstocombine['some'])
+rule3 = ctrl.Rule(drivercurrentload['high'] & orderdensity['high'] & profitperdelivery['medium'], numberoforderstocombine['some'])
+rule4 = ctrl.Rule(orderdensity['low'] & deliveryurgency['high'] & trafficcondition['medium'], numberoforderstocombine['some'])
+rule5 = ctrl.Rule(profitperdelivery['high'] & deliveryurgency['high']&trafficcondition['medium'],numberoforderstocombine['some'])
+rule6 = ctrl.Rule(deliveryurgency['high'] & profitperdelivery['high'] , deliverypriority['high'])
+rule7 = ctrl.Rule(deliveryurgency['medium'] & trafficcondition['medium'], deliverypriority['medium'])
+rule8 = ctrl.Rule(deliveryurgency['low'] & orderdensity['high']& profitperdelivery['low'], deliverypriority['low'])
+
+numberoforderstocombine_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6, rule7,rule8])
+numberoforderstocombine_simulation = ctrl.ControlSystemSimulation(numberoforderstocombine_ctrl)
+
+numberoforderstocombine_simulation.input['orderdensity']=4.3
+numberoforderstocombine_simulation.input['deliveryurgency']=4.1
+numberoforderstocombine_simulation.input['drivercurrentload']=3.9
+numberoforderstocombine_simulation.input['trafficcondition']=3.8
+numberoforderstocombine_simulation.input['profitperdelivery']=2.5
+numberoforderstocombine_simulation.compute()
+print(numberoforderstocombine_simulation.output['numberoforderstocombine'])
+numberoforderstocombine.view(sim=numberoforderstocombine_simulation)
+
+deliverypriority_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6, rule7,rule8])
+deliverypriority_simulation = ctrl.ControlSystemSimulation(deliverypriority_ctrl)
+
+deliverypriority_simulation.input['orderdensity']=4.3
+deliverypriority_simulation.input['deliveryurgency']=4.1
+deliverypriority_simulation.input['drivercurrentload']=3.9
+deliverypriority_simulation.input['trafficcondition']=3.8
+deliverypriority_simulation.input['profitperdelivery']=2.5
+deliverypriority_simulation.compute()
+print(deliverypriority_simulation.output['deliverypriority'])
+deliverypriority.view(sim=deliverypriority_simulation)
